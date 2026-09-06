@@ -1,0 +1,27 @@
+{
+  "summary": "Targeted frontend verification of 2 bug fixes (gallery uniform slide sizing + mobile hero text clipping) plus mobile-viewport sweep across Home/anomaly/furniture/work/about/project pages. Both fixes verified working. No new issues found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_details": {
+    "gallery_uniform_sizing_desktop": "PASS - At 1920x1080 on /project/folded-wallshelf, all 6 gallery slides measured identically: slide_w=1920, img_w=1920, img_h=1440 (landscape 4:3 ratio applied uniformly). Confirmed by navigating through every slide via thumbnails (gallery-thumb-0..5). No 'first-slide-is-bigger' regression. isFirst special-casing successfully removed.",
+    "gallery_uniform_sizing_mobile": "PASS - At 390x844 on /project/folded-wallshelf, all 6 slides measured identically: slide_w=390, img_w=390, img_h=293. Every slide spans full viewport width (x=0 in embla track, image edge-to-edge). No shrunken/letterboxed slides after slide 0.",
+    "home_hero_mobile_clipping": "PASS - At 390px viewport, h1 hero title textContent='SpaceFormExperiment.' (three stacked words rendered), h1.width=358, right edge=374, viewport=390 => no right-edge clipping. scrollWidth (358) === clientWidth (358), overflowsRight=false. Computed font-size=35.1px (matches 9vw of 390). All three words fully visible in screenshot.",
+    "mobile_sweep": "PASS - Checked /, /anomaly, /furniture, /work, /about, /project/folded-wallshelf at 390px width. No visible text/element clipped off the right edge on any page. The only 'overflow' hits were expected: a horizontal marquee/scroller on Home containing keywords (Compression, Folding, Peeling, etc.) which is designed to scroll horizontally — not a bug. The known-harmless embla-carousel document scrollWidth=435 vs clientWidth=390 quirk persists on project pages (as documented in iteration_2/3) but produces no visible horizontal scrollbar or visual defect."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ProjectGallery.jsx: on mobile (<768px) the prev/next buttons are hidden via 'hidden md:flex'. This is intentional (touch swipe + thumbnail strip provide navigation), so not a bug — just noting that automated testing on mobile must use gallery-thumb-<i> or emblaApi.scrollNext(), not gallery-next-button.",
+    "ProjectGallery.jsx line 77: data-testid is 'gallery-next-button' / 'gallery-prev-button' (not 'gallery-next' / 'gallery-prev'). Consistent, but review_request referenced 'next arrow' generically — confirm main agent aware of exact testids."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (frontend-only round)", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Both targeted bug fixes verified on real preview URL. Gallery images on folded-wallshelf all use hasRatio branch (landscape 4:3) — every slide renders identically at 1920x1440 (desktop) / 390x293 (mobile). Home hero at 9vw fits within 390px width with 16px margin. Mobile sweep across all 6 primary pages is clean. Backend not tested this round per E1 instructions."
+}

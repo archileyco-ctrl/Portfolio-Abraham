@@ -34,7 +34,6 @@ export default function ProjectGallery({ images, title }) {
           <div className="flex">
             {images.map((img, i) => {
               const hasRatio = img.ratio && img.ratio !== "auto";
-              const isFirst = i === 0;
               return (
                 <div
                   key={img.url + i}
@@ -42,25 +41,19 @@ export default function ProjectGallery({ images, title }) {
                   data-testid={`gallery-slide-${i}`}
                 >
                   {hasRatio ? (
-                    <div className={`w-full ${isFirst ? "" : "max-w-3xl"} ${RATIO_CLASS[img.ratio] || ""}`}>
+                    <div className={`w-full ${RATIO_CLASS[img.ratio] || ""}`}>
                       <img
                         src={img.url}
                         alt={img.caption || title}
                         className={`w-full h-full ${img.crop ? "object-cover" : "object-contain"}`}
                       />
                     </div>
-                  ) : isFirst ? (
-                    <img
-                      src={img.url}
-                      alt={img.caption || title}
-                      className="w-full h-[70vh] md:h-[92vh] object-cover"
-                      data-testid="gallery-hero-image"
-                    />
                   ) : (
                     <img
                       src={img.url}
                       alt={img.caption || title}
-                      className="max-h-[62vh] md:max-h-[78vh] w-auto max-w-full object-contain"
+                      className="w-full h-[70vh] md:h-[92vh] object-cover"
+                      data-testid={`gallery-hero-image-${i}`}
                     />
                   )}
                 </div>

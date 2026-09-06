@@ -43,7 +43,7 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-12 gap-6 mt-8 flex-1">
           <div className="col-span-12 md:col-span-8">
-            <h1 className="display text-[13vw] md:text-[6.8vw] whitespace-nowrap" data-testid="hero-title">
+            <h1 className="display text-[9vw] md:text-[6.8vw] whitespace-nowrap" data-testid="hero-title">
               <MaskedLine delay={0.1}>Space</MaskedLine>
               <MaskedLine delay={0.22}>Form</MaskedLine>
               <MaskedLine delay={0.34}>
