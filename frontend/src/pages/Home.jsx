@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Seo from "@/components/Seo";
 import Marquee from "@/components/Marquee";
-import HomeIntro from "@/components/HomeIntro";
+import HomeCover from "@/components/HomeCover";
 import { Reveal, MaskedLine } from "@/components/Reveal";
 import { fetchPublished, WORLDS, pad } from "@/lib/api";
 
@@ -23,7 +23,7 @@ export default function Home() {
 
   return (
     <div data-testid="home-page">
-      <HomeIntro />
+      <HomeCover />
       <Seo
         title="abearchitectstudio — Architecture, objects and spatial experiments"
         siteName="abearchitectstudio"

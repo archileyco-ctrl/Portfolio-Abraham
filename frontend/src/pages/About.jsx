@@ -22,7 +22,7 @@ export default function About() {
       />
       <section className="px-4 md:px-10 pt-28 md:pt-32">
         <div className="mono text-mute">04 / About</div>
-        <h1 className="display lowercase text-[11vw] md:text-[7.5vw] mt-10" data-testid="about-title">
+        <h1 className="display lowercase text-[9vw] md:text-[7.5vw] mt-10 break-words" data-testid="about-title">
           <MaskedLine delay={0.1}>abearchitectstudio</MaskedLine>
         </h1>
         <Reveal className="grid grid-cols-12 gap-6 mt-16">

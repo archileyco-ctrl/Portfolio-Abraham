@@ -28,12 +28,13 @@ export default function ProjectGallery({ images, title }) {
   if (!images?.length) return null;
 
   return (
-    <section className="px-4 md:px-10 mt-14" data-testid="project-gallery">
+    <section className="mt-14" data-testid="project-gallery">
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
             {images.map((img, i) => {
               const hasRatio = img.ratio && img.ratio !== "auto";
+              const isFirst = i === 0;
               return (
                 <div
                   key={img.url + i}
@@ -41,13 +42,20 @@ export default function ProjectGallery({ images, title }) {
                   data-testid={`gallery-slide-${i}`}
                 >
                   {hasRatio ? (
-                    <div className={`w-full max-w-3xl ${RATIO_CLASS[img.ratio] || ""}`}>
+                    <div className={`w-full ${isFirst ? "" : "max-w-3xl"} ${RATIO_CLASS[img.ratio] || ""}`}>
                       <img
                         src={img.url}
                         alt={img.caption || title}
                         className={`w-full h-full ${img.crop ? "object-cover" : "object-contain"}`}
                       />
                     </div>
+                  ) : isFirst ? (
+                    <img
+                      src={img.url}
+                      alt={img.caption || title}
+                      className="w-full h-[70vh] md:h-[92vh] object-cover"
+                      data-testid="gallery-hero-image"
+                    />
                   ) : (
                     <img
                       src={img.url}
@@ -85,7 +93,7 @@ export default function ProjectGallery({ images, title }) {
         )}
       </div>
 
-      <div className="flex justify-between items-center mt-3">
+      <div className="flex justify-between items-center mt-3 px-4 md:px-10">
         <p className="mono text-mute" data-testid="gallery-caption">
           {images[selected]?.caption || ""}
         </p>
@@ -97,7 +105,7 @@ export default function ProjectGallery({ images, title }) {
       </div>
 
       {images.length > 1 && (
-        <div className="flex gap-2 mt-4 overflow-x-auto" data-testid="gallery-thumbnails">
+        <div className="flex gap-2 mt-4 overflow-x-auto px-4 md:px-10" data-testid="gallery-thumbnails">
           {images.map((img, i) => (
             <button
               key={img.url + i}

@@ -70,3 +70,10 @@ The user has a finished architecture portfolio (reference: spatial-studio-v2 pre
 - Home intro splash redesigned: white background (was dark), logo enlarged (w-72vw/max-w-4xl on desktop), removed the old white plate wrapper
 - Added clickable thumbnail strip below the project gallery (gallery-thumb-<i>) to jump directly to any image
 - Verified via testing_agent (iteration_3.json): 100% pass on bug fix + all visual changes; two cosmetic-only notes (desktop logo cap, harmless embla-carousel scrollWidth quirk on mobile) addressed/reviewed
+
+## Homepage cover + full-screen gallery + mobile fixes (2026-09-06, session 5)
+- Replaced the temporary auto-dismissing Home splash with a PERSISTENT full-viewport HomeCover section (renamed HomeIntro.jsx → HomeCover.jsx) at the top of Home: logo + subtle background design image, "Scroll ↓" hint, existing homepage content unchanged below it
+- GET /api/home-intro now falls back to the first published project's cover image when no admin bg has been set, so the cover always shows a real design (editable anytime via Editor → Settings → "Home opening screen background")
+- Project gallery's first image (slide 0) now renders full-screen: edge-to-edge full width, ~70vh mobile/~92vh desktop, object-cover — subsequent slides keep the smaller letterboxed treatment; explicit per-image ratio/crop from Editor still takes priority but is no longer width-capped for slide 0
+- Mobile fixes: ProjectDetail's giant index number + title now stack vertically (was cramped side-by-side); About page title no longer clips (smaller mobile font + break-words, wraps cleanly)
+- Verified via testing_agent (iteration_4.json): 8/8 checks pass. Minor unrelated data quirk noted (literal "None" shown when a project's location field is empty) — not fixed, out of scope

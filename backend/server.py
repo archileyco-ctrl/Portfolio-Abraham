@@ -217,9 +217,11 @@ async def update_about(body: AboutIn, _=Depends(require_editor)):
 @api_router.get("/home-intro")
 async def get_home_intro():
     doc = await db.settings.find_one({"id": "home_intro"})
-    if not doc:
-        return {"bg_image": ""}
-    return serialize(doc)
+    bg = doc.get("bg_image", "") if doc else ""
+    if not bg:
+        first = await db.projects.find_one({"published": True}, sort=[("order", 1)])
+        bg = first.get("cover", "") if first else ""
+    return {"bg_image": bg}
 
 
 @api_router.put("/admin/home-intro")
