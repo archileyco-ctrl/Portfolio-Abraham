@@ -79,7 +79,7 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      <section className="px-4 md:px-10 pt-28 md:pt-32">
+      <section className="px-4 md:px-10 pt-40 md:pt-32">
         <div className="grid grid-cols-12 gap-6">
           <div className="col-span-12 md:col-span-2 flex md:block items-center gap-3 mb-2 md:mb-0">
             <span className="display text-[3rem] md:text-[8rem] leading-none" data-testid="project-number">

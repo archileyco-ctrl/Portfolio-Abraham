@@ -20,7 +20,7 @@ export default function About() {
         siteName="abearchitectstudio"
         description="abearchitectstudio is an independent design practice investigating how a single operation can transform a space or an object."
       />
-      <section className="px-4 md:px-10 pt-28 md:pt-32">
+      <section className="px-4 md:px-10 pt-40 md:pt-32">
         <div className="mono text-mute">04 / About</div>
         <h1 className="display lowercase text-[9vw] md:text-[7.5vw] mt-10 break-words" data-testid="about-title">
           <MaskedLine delay={0.1}>abearchitectstudio</MaskedLine>

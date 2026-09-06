@@ -77,3 +77,10 @@ The user has a finished architecture portfolio (reference: spatial-studio-v2 pre
 - Project gallery's first image (slide 0) now renders full-screen: edge-to-edge full width, ~70vh mobile/~92vh desktop, object-cover — subsequent slides keep the smaller letterboxed treatment; explicit per-image ratio/crop from Editor still takes priority but is no longer width-capped for slide 0
 - Mobile fixes: ProjectDetail's giant index number + title now stack vertically (was cramped side-by-side); About page title no longer clips (smaller mobile font + break-words, wraps cleanly)
 - Verified via testing_agent (iteration_4.json): 8/8 checks pass. Minor unrelated data quirk noted (literal "None" shown when a project's location field is empty) — not fixed, out of scope
+
+## Gallery uniform sizing + mobile nav (2026-09-06, session 6)
+- Fixed: gallery slides after the first were smaller when navigating — removed isFirst special-casing in ProjectGallery, ALL slides now use the same full-screen (or explicit ratio) treatment
+- Fixed: Home hero "SPACE FORM EXPERIMENT." was clipped on real mobile phones — reduced mobile font-size text-[13vw]→text-[9vw]
+- Fixed: World.jsx hero title (e.g. "Design Furniture") was also clipped on mobile — same fix (text-[13vw]→text-[9vw] + break-words), plus Continue-link title and top section padding bumped
+- Added mobile-only quick-nav bar (SiteHeader.jsx, data-testid=mobile-quick-nav) fixed below the header with 4 short pills (Anomaly/Furniture/Work/About) for direct navigation without opening the hamburger menu; all pages' mobile top-padding bumped pt-28→pt-40 to clear the two stacked fixed bars
+- Verified via testing_agent (iteration_5.json, iteration_6.json): 100% pass both rounds (1 minor testid bug found+fixed by testing agent itself in iteration_6: quick-nav testids now derive from route slug not label)

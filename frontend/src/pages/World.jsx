@@ -30,11 +30,11 @@ export default function World({ worldKey }) {
         description={world.description}
       />
 
-      <section className="px-4 md:px-10 pt-28 md:pt-32">
+      <section className="px-4 md:px-10 pt-40 md:pt-32">
         <div className="mono text-mute" data-testid="world-label">
           World {world.index} / 03
         </div>
-        <h1 className="display text-[13vw] md:text-[9vw] mt-8 md:text-center" data-testid="world-title">
+        <h1 className="display text-[9vw] md:text-[9vw] mt-8 md:text-center break-words" data-testid="world-title">
           <MaskedLine delay={0.1}>{world.titleLines[0]}</MaskedLine>
           <MaskedLine delay={0.24} className="text-accent">{world.titleLines[1]}</MaskedLine>
         </h1>
@@ -107,7 +107,7 @@ export default function World({ worldKey }) {
       <section className="px-4 md:px-10 py-20">
         <Link to={other.path} data-testid="continue-link" className="group block">
           <span className="mono text-mute">Continue — {other.index}</span>
-          <span className="display text-[10vw] md:text-[6vw] block mt-4 group-hover:text-accent transition-colors">
+          <span className="display text-[8vw] md:text-[6vw] block mt-4 group-hover:text-accent transition-colors break-words">
             {other.title} →
           </span>
         </Link>

@@ -37,7 +37,7 @@ export default function Home() {
       />
 
       {/* Hero */}
-      <section className="px-4 md:px-10 pt-28 md:pt-32 min-h-[92vh] flex flex-col" data-testid="hero">
+      <section className="px-4 md:px-10 pt-40 md:pt-32 min-h-[92vh] flex flex-col" data-testid="hero">
         <div className="mono text-mute" data-testid="hero-label">
           Architecture, objects and spatial experiments
         </div>

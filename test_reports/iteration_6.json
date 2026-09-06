@@ -1,0 +1,21 @@
+{
+  "summary": "Frontend-only mobile regression + new mobile quick-nav feature verification. Tested at 390/412/430px widths. Found and fixed one bug: quick-nav data-testids for the 'Design Anomaly' and 'Design Furniture' links used the full label ('quick-nav-design-anomaly', 'quick-nav-design-furniture') instead of the specified 'quick-nav-anomaly'/'quick-nav-furniture' (Work/About worked because labels are single-word). After fix, all four testids exist on every public page, all four routes navigate correctly with active/underline state, no title clipping, no horizontal overflow, desktop correctly hides quick-nav, mobile hamburger menu overlay still works.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SiteHeader.jsx quick-nav data-testid was derived from n.label (e.g. 'Design Anomaly' → 'quick-nav-design-anomaly') which did not match the review spec ('quick-nav-anomaly'). Fixed by deriving from n.to (route slug). Recommend applying the same route-based testid pattern to the desktop nav ('nav-design-anomaly' etc.) in a future cleanup for consistency, though those are not spec-broken."
+  ],
+  "updated_files": ["/app/frontend/src/components/SiteHeader.jsx"],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 6 fixed the quick-nav data-testid derivation. Verified at 390/412/430px on /, /anomaly, /furniture, /work, /about, and a project detail page: mobile-quick-nav bar visible with 4 pills (Anomaly/Furniture/Work/About), no horizontal overflow (scrollWidth==clientWidth==viewport), all World hero titles fully within viewport (right edge ~374px at 390vp, ~396 at 412vp, ~414 at 430vp — no clipping), all four click-nav flows work with active underline, desktop 1920px hides quick-nav (md:hidden confirmed), mobile-menu overlay still opens on hamburger tap. Screenshots of About top confirm content clears the fixed header + quick-nav (~100px combined).",
+  "rca of the issue": "Root cause: In SiteHeader.jsx the quick-nav loop generated data-testid via `n.label.toLowerCase().replace(/\\s+/g,'-')`. Because two of the four NAV entries have two-word labels ('Design Anomaly', 'Design Furniture'), their testids became 'quick-nav-design-anomaly' and 'quick-nav-design-furniture' instead of the spec-required short forms. Fix: switched to `n.to.replace('/','')` so the testid always matches the route slug (anomaly/furniture/work/about). Verified all four selectors now resolve and click-navigate correctly."
+}

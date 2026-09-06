@@ -47,6 +47,25 @@ export default function SiteHeader() {
           </button>
         </div>
       </header>
+      <div
+        className="md:hidden fixed top-14 inset-x-0 z-40 bg-paper/95 backdrop-blur-md hairline-b overflow-x-auto"
+        data-testid="mobile-quick-nav"
+      >
+        <div className="flex items-center gap-5 px-4 h-11 whitespace-nowrap">
+          {NAV.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              data-testid={`quick-nav-${n.to.replace("/", "")}`}
+              className={({ isActive }) =>
+                `mono shrink-0 transition-colors ${isActive ? "text-ink underline underline-offset-4" : "text-mute"}`
+              }
+            >
+              {n.label.replace("Design ", "")}
+            </NavLink>
+          ))}
+        </div>
+      </div>
       {open && (
         <div className="fixed inset-0 z-40 bg-paper pt-24 px-4 md:hidden" data-testid="mobile-menu">
           <nav className="flex flex-col gap-6">
