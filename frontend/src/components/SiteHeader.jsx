@@ -16,7 +16,7 @@ export default function SiteHeader() {
         <div className="px-4 md:px-10 h-14 flex items-center justify-between">
           <Link to="/" data-testid="site-logo" className="flex items-center">
             <img
-              src="https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/oe4wy2me_Abraham%20Logo.webp"
+              src="https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/lrofb11j_LOGO%20TERBARU-01.webp"
               alt="Abraham — Conceptual & Experimental"
               className="h-7 md:h-8 w-auto object-contain"
             />

@@ -7,7 +7,7 @@ export default function SiteFooter() {
         <div className="grid grid-cols-12 gap-6 items-end">
           <div className="col-span-12 md:col-span-7">
             <img
-              src="https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/oe4wy2me_Abraham%20Logo.webp"
+              src="https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/lrofb11j_LOGO%20TERBARU-01.webp"
               alt="Abraham — Conceptual & Experimental"
               data-testid="footer-wordmark"
               className="h-14 md:h-20 w-auto object-contain"

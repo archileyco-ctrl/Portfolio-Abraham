@@ -63,3 +63,10 @@ The user has a finished architecture portfolio (reference: spatial-studio-v2 pre
 - P2: Swap Poppins → real Gotham once user uploads font files
 - P2: Delete uploaded files from disk when removed from a project
 - P2: Passcode recovery via email (needs user's Resend API key if revisited)
+
+## Bug fix + polish (2026-09-06, session 4)
+- FIXED: first project image's ratio/crop setting wasn't applied in ProjectGallery (opening slider ignored ratio for all slides; only the later inline "sections/extra images" duplicate — which excludes image 0 — respected it). Now every gallery slide applies its own ratio+crop.
+- Replaced logo everywhere (header, footer, home intro) with newest logo file ("LOGO TERBARU-01")
+- Home intro splash redesigned: white background (was dark), logo enlarged (w-72vw/max-w-4xl on desktop), removed the old white plate wrapper
+- Added clickable thumbnail strip below the project gallery (gallery-thumb-<i>) to jump directly to any image
+- Verified via testing_agent (iteration_3.json): 100% pass on bug fix + all visual changes; two cosmetic-only notes (desktop logo cap, harmless embla-carousel scrollWidth quirk on mobile) addressed/reviewed

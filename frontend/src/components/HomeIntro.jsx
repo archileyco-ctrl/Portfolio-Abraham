@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { fetchHomeIntro } from "@/lib/api";
 
 const LOGO_URL =
-  "https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/oe4wy2me_Abraham%20Logo.webp";
+  "https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/lrofb11j_LOGO%20TERBARU-01.webp";
 
 export default function HomeIntro() {
   const [visible, setVisible] = useState(true);
@@ -24,24 +24,24 @@ export default function HomeIntro() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           onClick={() => setVisible(false)}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink cursor-pointer overflow-hidden"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-paper cursor-pointer overflow-hidden"
         >
           {bgImage && (
             <img
               src={bgImage}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover opacity-50"
+              className="absolute inset-0 w-full h-full object-cover opacity-[0.12]"
               data-testid="home-intro-bg"
             />
           )}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="relative bg-paper px-10 py-7 md:px-14 md:py-9"
-          >
-            <img src={LOGO_URL} alt="Abraham — Conceptual & Experimental" className="h-8 md:h-11 w-auto object-contain" />
-          </motion.div>
+          <motion.img
+            src={LOGO_URL}
+            alt="Abraham — Conceptual & Experimental"
+            initial={{ opacity: 0, scale: 0.88, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-[72vw] max-w-md md:max-w-4xl h-auto object-contain"
+          />
         </motion.div>
       )}
     </AnimatePresence>

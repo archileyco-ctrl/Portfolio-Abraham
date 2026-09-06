@@ -3,6 +3,8 @@ import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { pad } from "@/lib/api";
 
+const RATIO_CLASS = { square: "aspect-square", landscape: "aspect-[4/3]", portrait: "aspect-[3/4]", wide: "aspect-[16/9]" };
+
 export default function ProjectGallery({ images, title }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "start" });
   const [selected, setSelected] = useState(0);
@@ -23,26 +25,39 @@ export default function ProjectGallery({ images, title }) {
     };
   }, [emblaApi, onSelect]);
 
-  if (!images.length) return null;
+  if (!images?.length) return null;
 
   return (
     <section className="px-4 md:px-10 mt-14" data-testid="project-gallery">
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
-            {images.map((img, i) => (
-              <div
-                key={img.url + i}
-                className="min-w-0 flex-[0_0_100%] flex items-center justify-center bg-ink/5"
-                data-testid={`gallery-slide-${i}`}
-              >
-                <img
-                  src={img.url}
-                  alt={img.caption || title}
-                  className="max-h-[62vh] md:max-h-[78vh] w-auto max-w-full object-contain"
-                />
-              </div>
-            ))}
+            {images.map((img, i) => {
+              const hasRatio = img.ratio && img.ratio !== "auto";
+              return (
+                <div
+                  key={img.url + i}
+                  className="min-w-0 flex-[0_0_100%] flex items-center justify-center bg-ink/5"
+                  data-testid={`gallery-slide-${i}`}
+                >
+                  {hasRatio ? (
+                    <div className={`w-full max-w-3xl ${RATIO_CLASS[img.ratio] || ""}`}>
+                      <img
+                        src={img.url}
+                        alt={img.caption || title}
+                        className={`w-full h-full ${img.crop ? "object-cover" : "object-contain"}`}
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={img.url}
+                      alt={img.caption || title}
+                      className="max-h-[62vh] md:max-h-[78vh] w-auto max-w-full object-contain"
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -80,6 +95,25 @@ export default function ProjectGallery({ images, title }) {
           </span>
         )}
       </div>
+
+      {images.length > 1 && (
+        <div className="flex gap-2 mt-4 overflow-x-auto" data-testid="gallery-thumbnails">
+          {images.map((img, i) => (
+            <button
+              key={img.url + i}
+              type="button"
+              data-testid={`gallery-thumb-${i}`}
+              onClick={() => emblaApi?.scrollTo(i)}
+              aria-label={`Go to image ${i + 1}`}
+              className={`shrink-0 w-16 h-11 border overflow-hidden transition-opacity ${
+                selected === i ? "border-ink opacity-100" : "border-line opacity-45 hover:opacity-80"
+              }`}
+            >
+              <img src={img.url} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
