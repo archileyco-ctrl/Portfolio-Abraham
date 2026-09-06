@@ -21,6 +21,16 @@ export const WORLDS = {
     description:
       "Objects and furniture understood as small architecture. Each piece records a single design operation — peeling, compression, splitting — made legible in material.",
   },
+  work: {
+    key: "work",
+    index: "03",
+    title: "Work",
+    titleLines: ["Design", "Work"],
+    path: "/work",
+    description:
+      "Applied practice across supervision, building design and competition entries — where architectural ideas meet real briefs, sites and constraints.",
+    categories: ["Supervisor", "Building Design", "Competition Design"],
+  },
 };
 
 export const getToken = () => localStorage.getItem("editor_token");
@@ -90,6 +100,25 @@ export const adminUpload = async (files) => {
   for (const f of files) form.append("files", f);
   const { data } = await axios.post(`${API}/admin/uploads`, form, authHeaders());
   return data.urls;
+};
+
+export const fetchAbout = async () => {
+  const { data } = await axios.get(`${API}/about`);
+  return data;
+};
+
+export const adminUpdateAbout = async (payload) => {
+  const { data } = await axios.put(`${API}/admin/about`, payload, authHeaders());
+  return data;
+};
+
+export const adminChangePasscode = async (current_passcode, new_passcode) => {
+  const { data } = await axios.post(
+    `${API}/admin/change-passcode`,
+    { current_passcode, new_passcode },
+    authHeaders()
+  );
+  return data;
 };
 
 export const pad = (n) => String(n + 1).padStart(2, "0");

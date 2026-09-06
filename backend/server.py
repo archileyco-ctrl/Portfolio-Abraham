@@ -1,5 +1,6 @@
 import os
 import re
+import io
 import uuid
 import logging
 from pathlib import Path
@@ -16,6 +17,8 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
+from PIL import Image
+import bcrypt
 import jwt
 
 mongo_url = os.environ['MONGO_URL']
@@ -42,6 +45,46 @@ class ImageItem(BaseModel):
 class SectionItem(BaseModel):
     heading: str = ""
     text: str = ""
+
+
+class FactItem(BaseModel):
+    label: str = ""
+    value: str = ""
+
+
+class AboutIn(BaseModel):
+    intro: str = ""
+    bio: List[str] = []
+    facts: List[FactItem] = []
+    email: str = ""
+    instagram: str = ""
+
+
+class PasscodeChange(BaseModel):
+    current_passcode: str
+    new_passcode: str
+
+
+DEFAULT_ABOUT = {
+    "intro": "A studio working between architecture and the object.",
+    "bio": [
+        "abearchitectstudio is an independent design practice investigating how a single "
+        "operation can transform a space or an object. The work moves between three bodies: "
+        "Design Anomaly, where architecture is tested through subtraction, displacement and "
+        "deformation; Design Furniture, where the same operations are compressed into chairs, "
+        "tables and lighting; and Work, where the practice is applied to supervision, building "
+        "design and competition briefs.",
+        "This is placeholder text. Open the Studio to replace it with your own biography, "
+        "education and practice statement.",
+    ],
+    "facts": [
+        {"label": "Education", "value": "M.Arch — replace in Studio settings"},
+        {"label": "Practice", "value": "Independent studio, est. 2024"},
+        {"label": "Focus", "value": "Architecture, spatial research, furniture"},
+    ],
+    "email": "studio@abearchitectstudio.com",
+    "instagram": "@abearchitectstudio",
+}
 
 
 class ProjectIn(BaseModel):
@@ -108,11 +151,20 @@ async def require_editor(request: Request):
     return True
 
 
+def hash_passcode(passcode: str) -> str:
+    return bcrypt.hashpw(passcode.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+def verify_passcode(passcode: str, hashed: str) -> bool:
+    return bcrypt.checkpw(passcode.encode('utf-8'), hashed.encode('utf-8'))
+
+
 # ---------- Auth ----------
 
 @api_router.post("/auth/login")
 async def login(body: dict):
-    if body.get('passcode') != EDITOR_PASSCODE:
+    settings = await db.settings.find_one({"id": "auth"})
+    if not settings or not verify_passcode(body.get('passcode', ''), settings['passcode_hash']):
         raise HTTPException(status_code=401, detail="Wrong passcode")
     return {"token": make_token()}
 
@@ -120,6 +172,38 @@ async def login(body: dict):
 @api_router.get("/auth/verify")
 async def verify(_=Depends(require_editor)):
     return {"ok": True}
+
+
+@api_router.post("/admin/change-passcode")
+async def change_passcode(body: PasscodeChange, _=Depends(require_editor)):
+    settings = await db.settings.find_one({"id": "auth"})
+    if not settings or not verify_passcode(body.current_passcode, settings['passcode_hash']):
+        raise HTTPException(status_code=401, detail="Current passcode is incorrect")
+    if len(body.new_passcode) < 4:
+        raise HTTPException(status_code=400, detail="New passcode must be at least 4 characters")
+    await db.settings.update_one(
+        {"id": "auth"},
+        {"$set": {"passcode_hash": hash_passcode(body.new_passcode)}},
+    )
+    return {"ok": True}
+
+
+# ---------- About content ----------
+
+@api_router.get("/about")
+async def get_about():
+    doc = await db.settings.find_one({"id": "about"})
+    if not doc:
+        return DEFAULT_ABOUT
+    return serialize(doc)
+
+
+@api_router.put("/admin/about")
+async def update_about(body: AboutIn, _=Depends(require_editor)):
+    data = body.model_dump()
+    data['id'] = 'about'
+    await db.settings.update_one({"id": "about"}, {"$set": data}, upsert=True)
+    return data
 
 
 # ---------- Public project routes ----------
@@ -203,6 +287,27 @@ async def admin_reorder(body: dict, _=Depends(require_editor)):
     return {"ok": True}
 
 
+def compress_image(content: bytes, ext: str) -> bytes:
+    if ext not in {'.jpg', '.jpeg', '.png', '.webp'}:
+        return content
+    try:
+        img = Image.open(io.BytesIO(content))
+        max_dim = 2400
+        if max(img.size) > max_dim:
+            ratio = max_dim / max(img.size)
+            img = img.resize((max(1, int(img.width * ratio)), max(1, int(img.height * ratio))), Image.LANCZOS)
+        buf = io.BytesIO()
+        if ext in {'.jpg', '.jpeg'}:
+            img.convert('RGB').save(buf, format='JPEG', quality=82, optimize=True)
+        elif ext == '.webp':
+            img.save(buf, format='WEBP', quality=82)
+        else:
+            img.save(buf, format='PNG', optimize=True)
+        return buf.getvalue()
+    except Exception:
+        return content
+
+
 @api_router.post("/admin/uploads")
 async def admin_upload(files: List[UploadFile] = File(...), _=Depends(require_editor)):
     urls = []
@@ -212,6 +317,7 @@ async def admin_upload(files: List[UploadFile] = File(...), _=Depends(require_ed
             raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}")
         name = f"{uuid.uuid4().hex}{ext}"
         content = await f.read()
+        content = compress_image(content, ext)
         (UPLOAD_DIR / name).write_bytes(content)
         urls.append(f"/api/uploads/{name}")
     return {"urls": urls}
@@ -370,6 +476,16 @@ async def seed_projects():
             doc['created_at'] = now
             await db.projects.insert_one(doc)
         logger.info(f"Seeded {len(SEED)} projects")
+
+    if not await db.settings.find_one({"id": "auth"}):
+        await db.settings.insert_one({"id": "auth", "passcode_hash": hash_passcode(EDITOR_PASSCODE)})
+        logger.info("Seeded editor passcode")
+
+    if not await db.settings.find_one({"id": "about"}):
+        about = dict(DEFAULT_ABOUT)
+        about['id'] = 'about'
+        await db.settings.insert_one(about)
+        logger.info("Seeded about content")
 
 
 app.include_router(api_router)

@@ -27,9 +27,17 @@ The user has a finished architecture portfolio (reference: spatial-studio-v2 pre
 - Passcode auth (JWT), local persistent uploads
 - Editor passcode: atelier2026 (see /app/memory/test_credentials.md)
 
-## Verified
-- API: login/verify, wrong passcode rejected, create draft (hidden publicly), publish (appears), reorder, upload + serving, delete, unauthorized 401
-- UI: home, anomaly page, project page, editor login, dashboard, edit form
+## Implemented (2026-09-06, session 2)
+- New third world "Work" (path /work) with 3 fixed categories: Supervisor, Building Design, Competition Design — always shown as filter chips even with 0 projects. Fully manageable from Editor exactly like Anomaly/Furniture (world dropdown + category datalist suggestions)
+- About page is now a CMS: intro line, bio paragraphs (add/remove), facts rows (add/remove), email/instagram — served via GET /api/about (public), edited via PUT /api/admin/about, editable in Editor → Settings
+- Drag-and-drop reordering (dnd-kit) replacing old up/down arrow buttons: project rows in Editor dashboard (per world group, drag handle -> calls POST /api/admin/projects/reorder) and images inside ProjectForm (client-side array reorder, persisted on Save)
+- Editor Settings screen: change passcode (bcrypt hash stored in Mongo `settings` collection id="auth", seeded from EDITOR_PASSCODE on first boot only; POST /api/admin/change-passcode verifies current + updates hash). Passcode changed to `abearch4231`
+- Automatic image compression on upload: Pillow resizes any image >2400px on its longest side and re-encodes jpg/webp at quality=82 / png with optimize (server-side in POST /api/admin/uploads, gif/avif passed through untouched)
+- Public site header logo replaced: top-left now renders the Abraham wordmark image instead of "abearchitectstudio" text (editor/admin headers unchanged, out of scope)
+
+## Verified (session 2)
+- Backend: 17/17 pytest cases (auth, passcode change, About CMS, Projects CRUD incl. "work" world, reorder, uploads+compression) — 100% pass
+- Frontend: logo image, 4 nav links, /work hero+categories, /about dynamic content, editor login with new passcode, 3 world groups with drag handles, Settings view (passcode + about cards) — 100% pass via testing_agent (see /app/test_reports/iteration_1.json)
 
 ## Backlog
 - P1: Drag-and-drop reordering in editor

@@ -78,7 +78,7 @@ export default function Home() {
         </div>
         <div className="flex justify-between items-end pb-6 mt-10">
           <span className="mono text-mute" data-testid="hero-count">
-            {projects.length} works — 2 design worlds
+            {projects.length} works — 3 design worlds
           </span>
           <span className="mono text-mute">Scroll ↓</span>
         </div>
@@ -124,16 +124,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Two bodies of work */}
+      {/* Three bodies of work */}
       <section className="px-4 md:px-10 pt-16" data-testid="two-worlds">
         <div className="hairline-b pb-4">
-          <span className="mono text-mute">02 — Two bodies of work</span>
+          <span className="mono text-mute">02 — Three bodies of work</span>
         </div>
         <div className="grid grid-cols-12 gap-6 mt-14">
           {Object.values(WORLDS).map((w, i) => {
             const first = byWorld(w.key)[0];
             return (
-              <Reveal key={w.key} delay={i * 0.12} className="col-span-12 md:col-span-6 mb-12">
+              <Reveal key={w.key} delay={i * 0.12} className="col-span-12 md:col-span-4 mb-12">
                 <Link to={w.path} data-testid={`world-card-${w.key}`} className="block group">
                   {first && (
                     <div className="overflow-hidden">

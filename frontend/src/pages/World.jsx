@@ -6,7 +6,8 @@ import { fetchPublished, WORLDS, pad } from "@/lib/api";
 
 export default function World({ worldKey }) {
   const world = WORLDS[worldKey];
-  const other = worldKey === "anomaly" ? WORLDS.furniture : WORLDS.anomaly;
+  const keys = Object.keys(WORLDS);
+  const other = WORLDS[keys[(keys.indexOf(worldKey) + 1) % keys.length]];
   const [projects, setProjects] = useState([]);
   const [filter, setFilter] = useState("All");
 
@@ -15,7 +16,10 @@ export default function World({ worldKey }) {
     fetchPublished(worldKey).then(setProjects).catch(() => {});
   }, [worldKey]);
 
-  const categories = ["All", ...new Set(projects.map((p) => p.category).filter(Boolean))];
+  const categories = [
+    "All",
+    ...new Set([...(world.categories || []), ...projects.map((p) => p.category).filter(Boolean)]),
+  ];
   const visible = filter === "All" ? projects : projects.filter((p) => p.category === filter);
 
   return (
@@ -28,7 +32,7 @@ export default function World({ worldKey }) {
 
       <section className="px-4 md:px-10 pt-28 md:pt-32">
         <div className="mono text-mute" data-testid="world-label">
-          World {world.index} / 02
+          World {world.index} / 03
         </div>
         <h1 className="display text-[13vw] md:text-[9vw] mt-8 md:text-center" data-testid="world-title">
           <MaskedLine delay={0.1}>{world.titleLines[0]}</MaskedLine>

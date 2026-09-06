@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
+  DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, arrayMove,
+} from "@dnd-kit/sortable";
+import {
   adminLogin, adminVerify, adminFetchAll, adminDelete, adminReorder,
   adminUpdate, getToken, setToken, clearToken, WORLDS, pad,
 } from "@/lib/api";
+import { SortableItem, DragHandle } from "@/components/editor/SortableItem";
 import ProjectForm from "./ProjectForm";
+import SettingsView from "./SettingsView";
 
 function Login({ onSuccess }) {
   const [passcode, setPasscode] = useState("");
@@ -50,6 +58,92 @@ function Login({ onSuccess }) {
   );
 }
 
+function WorldGroup({ world, list, allProjects, onReordered, toggle, remove, setEditing, setView }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = list.findIndex((p) => p.id === active.id);
+    const newIndex = list.findIndex((p) => p.id === over.id);
+    const reordered = arrayMove(list, oldIndex, newIndex);
+    onReordered(world.key, reordered);
+    try {
+      await adminReorder(reordered.map((p) => p.id));
+    } catch {
+      toast.error("Reorder failed");
+    }
+  };
+
+  return (
+    <div className="mb-10">
+      <div className="mono text-mute hairline-b pb-2 mb-2" data-testid={`world-group-${world.key}`}>
+        {world.title} — {list.length}
+      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={list.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+          {list.map((p, gi) => (
+            <SortableItem key={p.id} id={p.id}>
+              {({ attributes, listeners }) => (
+                <div className="hairline-b py-3 flex items-center gap-4 bg-paper" data-testid={`editor-row-${p.slug}`}>
+                  <DragHandle attributes={attributes} listeners={listeners} testid={`drag-handle-${p.slug}`} />
+                  <span className="mono text-mute w-8">{pad(gi)}</span>
+                  {p.cover ? (
+                    <img src={p.cover} alt="" className="w-16 h-11 object-cover border border-line" />
+                  ) : (
+                    <div className="w-16 h-11 border border-line" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm truncate">{p.title}</div>
+                    <div className="mono text-mute">{p.category} — {p.year}</div>
+                  </div>
+                  <button
+                    data-testid={`toggle-publish-${p.slug}`}
+                    onClick={() => toggle(p, "published")}
+                    className={`mono px-3 py-1 border ${p.published ? "bg-ink text-paper border-transparent" : "border-line text-mute"}`}
+                    title="Publish / unpublish"
+                  >
+                    {p.published ? "Published" : "Draft"}
+                  </button>
+                  <button
+                    data-testid={`toggle-featured-${p.slug}`}
+                    onClick={() => toggle(p, "featured")}
+                    className={`mono px-3 py-1 border ${p.featured ? "text-accent border-accent" : "border-line text-mute"}`}
+                    title="Show on home page"
+                  >
+                    {p.featured ? "Featured" : "Feature"}
+                  </button>
+                  <a
+                    href={`/project/${p.slug}${p.published ? "" : "?preview=1"}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="e-btn"
+                    data-testid={`preview-${p.slug}`}
+                  >
+                    Preview
+                  </a>
+                  <button className="e-btn" data-testid={`edit-${p.slug}`} onClick={() => { setEditing(p); setView("form"); }}>
+                    Edit
+                  </button>
+                  <button className="e-btn hover:!bg-accent hover:!border-accent" data-testid={`delete-${p.slug}`} onClick={() => remove(p)}>
+                    Delete
+                  </button>
+                </div>
+              )}
+            </SortableItem>
+          ))}
+        </SortableContext>
+      </DndContext>
+      {list.length === 0 && (
+        <div className="mono text-mute py-6">No projects yet — add one.</div>
+      )}
+    </div>
+  );
+}
+
 export default function Editor() {
   const [authed, setAuthed] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -72,20 +166,6 @@ export default function Editor() {
   if (authed === null) return <div className="min-h-screen bg-paper" />;
   if (!authed) return <Login onSuccess={() => setAuthed(true)} />;
 
-  const move = async (i, dir) => {
-    const j = i + dir;
-    if (j < 0 || j >= projects.length) return;
-    const next = [...projects];
-    [next[i], next[j]] = [next[j], next[i]];
-    setProjects(next);
-    try {
-      await adminReorder(next.map((p) => p.id));
-    } catch {
-      toast.error("Reorder failed");
-      load();
-    }
-  };
-
   const toggle = async (p, field) => {
     try {
       await adminUpdate(p.id, { ...p, [field]: !p[field] });
@@ -106,6 +186,13 @@ export default function Editor() {
     }
   };
 
+  const onReordered = (worldKey, reorderedList) => {
+    setProjects((prev) => {
+      const others = prev.filter((p) => p.world !== worldKey);
+      return [...others, ...reorderedList];
+    });
+  };
+
   if (view === "form")
     return (
       <ProjectForm
@@ -114,6 +201,9 @@ export default function Editor() {
         onCancel={() => { setView("list"); setEditing(null); }}
       />
     );
+
+  if (view === "settings")
+    return <SettingsView onBack={() => setView("list")} />;
 
   return (
     <div className="min-h-screen bg-paper text-ink" data-testid="editor-dashboard">
@@ -124,6 +214,7 @@ export default function Editor() {
         </div>
         <div className="flex items-center gap-3">
           <a href="/" target="_blank" rel="noopener noreferrer" className="e-btn" data-testid="view-site-button">View site</a>
+          <button className="e-btn" data-testid="settings-button" onClick={() => setView("settings")}>Settings</button>
           <button
             className="e-btn e-btn-solid"
             data-testid="add-project-button"
@@ -143,71 +234,19 @@ export default function Editor() {
           <span className="mono text-mute">{projects.length} total</span>
         </div>
 
-        {Object.values(WORLDS).map((w) => {
-          const list = projects.filter((p) => p.world === w.key);
-          return (
-            <div key={w.key} className="mb-10">
-              <div className="mono text-mute hairline-b pb-2 mb-2" data-testid={`world-group-${w.key}`}>
-                {w.title} — {list.length}
-              </div>
-              {list.map((p) => {
-                const gi = projects.findIndex((x) => x.id === p.id);
-                return (
-                  <div key={p.id} className="hairline-b py-3 flex items-center gap-4" data-testid={`editor-row-${p.slug}`}>
-                    <div className="flex flex-col">
-                      <button data-testid={`move-up-${p.slug}`} onClick={() => move(gi, -1)} className="mono text-mute hover:text-ink leading-none" title="Move up">↑</button>
-                      <button data-testid={`move-down-${p.slug}`} onClick={() => move(gi, 1)} className="mono text-mute hover:text-ink leading-none" title="Move down">↓</button>
-                    </div>
-                    <span className="mono text-mute w-8">{pad(gi)}</span>
-                    {p.cover ? (
-                      <img src={p.cover} alt="" className="w-16 h-11 object-cover border border-line" />
-                    ) : (
-                      <div className="w-16 h-11 border border-line" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-sm truncate">{p.title}</div>
-                      <div className="mono text-mute">{p.category} — {p.year}</div>
-                    </div>
-                    <button
-                      data-testid={`toggle-publish-${p.slug}`}
-                      onClick={() => toggle(p, "published")}
-                      className={`mono px-3 py-1 border ${p.published ? "bg-ink text-paper border-transparent" : "border-line text-mute"}`}
-                      title="Publish / unpublish"
-                    >
-                      {p.published ? "Published" : "Draft"}
-                    </button>
-                    <button
-                      data-testid={`toggle-featured-${p.slug}`}
-                      onClick={() => toggle(p, "featured")}
-                      className={`mono px-3 py-1 border ${p.featured ? "text-accent border-accent" : "border-line text-mute"}`}
-                      title="Show on home page"
-                    >
-                      {p.featured ? "Featured" : "Feature"}
-                    </button>
-                    <a
-                      href={`/project/${p.slug}${p.published ? "" : "?preview=1"}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="e-btn"
-                      data-testid={`preview-${p.slug}`}
-                    >
-                      Preview
-                    </a>
-                    <button className="e-btn" data-testid={`edit-${p.slug}`} onClick={() => { setEditing(p); setView("form"); }}>
-                      Edit
-                    </button>
-                    <button className="e-btn hover:!bg-accent hover:!border-accent" data-testid={`delete-${p.slug}`} onClick={() => remove(p)}>
-                      Delete
-                    </button>
-                  </div>
-                );
-              })}
-              {list.length === 0 && (
-                <div className="mono text-mute py-6">No projects yet — add one.</div>
-              )}
-            </div>
-          );
-        })}
+        {Object.values(WORLDS).map((w) => (
+          <WorldGroup
+            key={w.key}
+            world={w}
+            list={projects.filter((p) => p.world === w.key)}
+            allProjects={projects}
+            onReordered={onReordered}
+            toggle={toggle}
+            remove={remove}
+            setEditing={setEditing}
+            setView={setView}
+          />
+        ))}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { Link, NavLink } from "react-router-dom";
 const NAV = [
   { to: "/anomaly", label: "Design Anomaly" },
   { to: "/furniture", label: "Design Furniture" },
+  { to: "/work", label: "Work" },
   { to: "/about", label: "About" },
 ];
 
@@ -13,12 +14,12 @@ export default function SiteHeader() {
     <>
       <header className="fixed top-0 inset-x-0 z-50 bg-paper/90 backdrop-blur-md hairline-b">
         <div className="px-4 md:px-10 h-14 flex items-center justify-between">
-          <Link
-            to="/"
-            data-testid="site-logo"
-            className="font-bold lowercase tracking-tight text-sm text-ink"
-          >
-            abearchitectstudio
+          <Link to="/" data-testid="site-logo" className="flex items-center">
+            <img
+              src="https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/oe4wy2me_Abraham%20Logo.webp"
+              alt="Abraham — Conceptual & Experimental"
+              className="h-7 md:h-8 w-auto object-contain"
+            />
           </Link>
           <nav className="hidden md:flex items-center gap-10">
             {NAV.map((n) => (

@@ -58,6 +58,7 @@ function App() {
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/anomaly" element={<PublicLayout><World worldKey="anomaly" /></PublicLayout>} />
           <Route path="/furniture" element={<PublicLayout><World worldKey="furniture" /></PublicLayout>} />
+          <Route path="/work" element={<PublicLayout><World worldKey="work" /></PublicLayout>} />
           <Route path="/project/:slug" element={<PublicLayout><ProjectDetail /></PublicLayout>} />
           <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
           <Route path="/editor" element={<Editor />} />

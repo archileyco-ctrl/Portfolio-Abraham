@@ -1,6 +1,13 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { adminCreate, adminUpdate, adminUpload } from "@/lib/api";
+import {
+  DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, arrayMove,
+} from "@dnd-kit/sortable";
+import { adminCreate, adminUpdate, adminUpload, WORLDS } from "@/lib/api";
+import { SortableItem, DragHandle } from "@/components/editor/SortableItem";
 
 const EMPTY = {
   title: "", slug: "", world: "anomaly", category: "", year: "", location: "",
@@ -48,12 +55,17 @@ export default function ProjectForm({ initial, onSaved, onCancel }) {
     }
   };
 
-  const moveImage = (i, dir) => {
-    const j = i + dir;
-    if (j < 0 || j >= p.images.length) return;
-    const images = [...p.images];
-    [images[i], images[j]] = [images[j], images[i]];
-    set("images", images);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleImageDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = p.images.findIndex((img) => img.url === active.id);
+    const newIndex = p.images.findIndex((img) => img.url === over.id);
+    set("images", arrayMove(p.images, oldIndex, newIndex));
   };
 
   const save = async (publish) => {
@@ -100,12 +112,23 @@ export default function ProjectForm({ initial, onSaved, onCancel }) {
             </Field>
             <Field label="World">
               <select className="e-input" data-testid="field-world" value={p.world} onChange={(e) => set("world", e.target.value)}>
-                <option value="anomaly">Design Anomaly</option>
-                <option value="furniture">Design Furniture</option>
+                {Object.values(WORLDS).map((w) => (
+                  <option key={w.key} value={w.key}>{w.title}</option>
+                ))}
               </select>
             </Field>
             <Field label="Category">
-              <input className="e-input" data-testid="field-category" value={p.category} onChange={(e) => set("category", e.target.value)} placeholder="Architecture, Chair…" />
+              <input
+                className="e-input"
+                data-testid="field-category"
+                list="category-suggestions"
+                value={p.category}
+                onChange={(e) => set("category", e.target.value)}
+                placeholder="Architecture, Chair…"
+              />
+              <datalist id="category-suggestions">
+                {(WORLDS[p.world]?.categories || []).map((c) => <option key={c} value={c} />)}
+              </datalist>
             </Field>
             <Field label="Year">
               <input className="e-input" data-testid="field-year" value={p.year} onChange={(e) => set("year", e.target.value)} />
@@ -180,32 +203,39 @@ export default function ProjectForm({ initial, onSaved, onCancel }) {
                 onChange={(e) => upload(e.target.files)} />
             </div>
             {p.images.length === 0 && <div className="mono text-mute py-4">No images yet.</div>}
-            {p.images.map((img, i) => (
-              <div key={img.url + i} className="border border-line p-3 mb-3" data-testid={`image-row-${i}`}>
-                <div className="flex gap-3 items-start">
-                  <img src={img.url} alt="" className="w-20 h-14 object-cover border border-line" />
-                  <div className="flex-1">
-                    <input className="e-input !py-1.5 text-xs" placeholder="Caption" data-testid={`image-caption-${i}`} value={img.caption}
-                      onChange={(e) => set("images", p.images.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))} />
-                    <div className="flex gap-2 mt-2 items-center">
-                      <button className={`mono px-2 py-1 border ${p.cover === img.url ? "bg-ink text-paper border-transparent" : "border-line text-mute"}`}
-                        data-testid={`set-cover-${i}`} onClick={() => set("cover", img.url)}>
-                        {p.cover === img.url ? "Cover ✓" : "Set cover"}
-                      </button>
-                      <button className="mono text-mute hover:text-ink" data-testid={`image-up-${i}`} onClick={() => moveImage(i, -1)}>↑</button>
-                      <button className="mono text-mute hover:text-ink" data-testid={`image-down-${i}`} onClick={() => moveImage(i, 1)}>↓</button>
-                      <button className="mono text-accent ml-auto" data-testid={`image-remove-${i}`}
-                        onClick={() => setP((s) => {
-                          const images = s.images.filter((_, j) => j !== i);
-                          return { ...s, images, cover: s.cover === img.url ? images[0]?.url || "" : s.cover };
-                        })}>
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleImageDragEnd}>
+              <SortableContext items={p.images.map((img) => img.url)} strategy={verticalListSortingStrategy}>
+                {p.images.map((img, i) => (
+                  <SortableItem key={img.url} id={img.url}>
+                    {({ attributes, listeners }) => (
+                      <div className="border border-line p-3 mb-3 bg-paper" data-testid={`image-row-${i}`}>
+                        <div className="flex gap-3 items-start">
+                          <DragHandle attributes={attributes} listeners={listeners} testid={`image-drag-handle-${i}`} />
+                          <img src={img.url} alt="" className="w-20 h-14 object-cover border border-line" />
+                          <div className="flex-1">
+                            <input className="e-input !py-1.5 text-xs" placeholder="Caption" data-testid={`image-caption-${i}`} value={img.caption}
+                              onChange={(e) => set("images", p.images.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))} />
+                            <div className="flex gap-2 mt-2 items-center">
+                              <button className={`mono px-2 py-1 border ${p.cover === img.url ? "bg-ink text-paper border-transparent" : "border-line text-mute"}`}
+                                data-testid={`set-cover-${i}`} onClick={() => set("cover", img.url)}>
+                                {p.cover === img.url ? "Cover ✓" : "Set cover"}
+                              </button>
+                              <button className="mono text-accent ml-auto" data-testid={`image-remove-${i}`}
+                                onClick={() => setP((s) => {
+                                  const images = s.images.filter((_, j) => j !== i);
+                                  return { ...s, images, cover: s.cover === img.url ? images[0]?.url || "" : s.cover };
+                                })}>
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </SortableItem>
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
 
           <div className="hairline-t pt-6 mt-6 flex items-center gap-6">
