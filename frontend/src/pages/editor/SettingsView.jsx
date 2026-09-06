@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { adminChangePasscode, fetchAbout, adminUpdateAbout } from "@/lib/api";
-import { useEffect } from "react";
+import { adminChangePasscode, fetchAbout, adminUpdateAbout, fetchHomeIntro, adminUpdateHomeIntro, adminUpload } from "@/lib/api";
+import { useEffect, useRef } from "react";
 
 const Field = ({ label, children }) => (
   <div className="mb-5">
@@ -48,6 +48,64 @@ function PasscodeCard() {
         {busy ? "Saving…" : "Update passcode"}
       </button>
     </form>
+  );
+}
+
+function HomeIntroCard() {
+  const [bgImage, setBgImage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    fetchHomeIntro().then((d) => setBgImage(d.bg_image || "")).catch(() => {});
+  }, []);
+
+  const upload = async (files) => {
+    if (!files?.length) return;
+    setUploading(true);
+    try {
+      const [url] = await adminUpload([files[0]]);
+      setBgImage(url);
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await adminUpdateHomeIntro(bgImage);
+      toast.success("Home opening screen updated");
+    } catch {
+      toast.error("Could not save");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="border border-line p-6 max-w-md" data-testid="home-intro-form">
+      <div className="mono text-mute mb-4">Home opening screen background</div>
+      {bgImage && <img src={bgImage} alt="" className="w-full aspect-[16/9] object-cover border border-line mb-3" data-testid="home-intro-preview" />}
+      <div className="flex gap-3 items-center">
+        <button type="button" className="e-btn" data-testid="home-intro-upload-button" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          {uploading ? "Uploading…" : "+ Upload background"}
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" hidden data-testid="home-intro-file-input" onChange={(e) => upload(e.target.files)} />
+        {bgImage && (
+          <button type="button" className="mono text-accent" data-testid="home-intro-remove-button" onClick={() => setBgImage("")}>
+            Remove
+          </button>
+        )}
+      </div>
+      <button type="button" className="e-btn e-btn-solid mt-4" data-testid="save-home-intro-button" disabled={busy} onClick={save}>
+        {busy ? "Saving…" : "Save"}
+      </button>
+    </div>
   );
 }
 
@@ -139,6 +197,7 @@ export default function SettingsView({ onBack }) {
       </header>
       <div className="px-4 md:px-10 py-8 max-w-4xl flex flex-col gap-10">
         <PasscodeCard />
+        <HomeIntroCard />
         <AboutEditorCard />
       </div>
     </div>

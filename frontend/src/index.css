@@ -1,22 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    --paper: #F1F0EA;
+    --paper: #FFFFFF;
     --ink: #171512;
     --accent: #9C3A26;
     --line: rgba(23, 21, 18, 0.14);
     --muted: #78746B;
+    --font-body: 'Poppins', -apple-system, sans-serif;
 }
 
 body {
     margin: 0;
     background: var(--paper);
     color: var(--ink);
-    font-family: 'Archivo', -apple-system, sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -49,7 +50,7 @@ body {
 }
 
 .mono {
-    font-family: 'Space Mono', ui-monospace, monospace;
+    font-family: var(--font-body);
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-size: 11px;
@@ -88,7 +89,7 @@ input, textarea, select {
 }
 
 .e-btn {
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-body);
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-size: 11px;

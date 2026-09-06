@@ -1,0 +1,30 @@
+{
+  "summary": "Focused test of NEW features in this session: (1) ProjectGallery embla carousel on /project/:slug, (2) HomeIntro splash on /, (3) white background + Poppins body/Archivo display fonts, (4) footer wordmark image, (5) Settings HomeIntroCard + GET/PUT /api/home-intro endpoints, (6) per-image Ratio/Crop selectors in ProjectForm and their persistence on ImageItem model. Backend: 21/21 pytest cases pass (17 regression + 4 new: 3 home-intro + 1 image ratio/crop). Frontend: all listed NEW items verified on desktop and mobile — home-intro overlay renders, dismisses on click and auto after ~2.4s; body bg is rgb(255,255,255); mono/nav computed font is 'Poppins,...'; .display computed font is 'Archivo,...'; footer-wordmark is an <img>; project-gallery renders with prev/next buttons, disabled-at-edges works, counter '01 / NN' updates on navigation; image order matches API images array; mobile swipe (pointer drag) advances counter 01→02; gallery-caption + gallery-counter data-testids present. Editor: home-intro-form + upload/save testids present; opening a project shows 6 image rows with image-ratio-<i> select and image-crop-<i> checkbox, and the checkbox is disabled when ratio='Original' (auto).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Project detail on mobile (390px viewport)", "issues": ["The large '.display' hero title (e.g. 'SUBTRACTED VOLUME') overflows the 390px viewport by ~45px, producing a small horizontal page scroll. The overflow is caused by the fixed-size display title, NOT by the new ProjectGallery. Consider clamping the title with word-break/overflow-wrap or a smaller mobile font-size for very long titles."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: fix mobile horizontal overflow on project detail hero title (add word-break/overflow-wrap: break-word or reduce mobile font-size on .display for long titles)."
+  ],
+  "critical_code_review_comments": [
+    "ProjectGallery: emblaApi listeners registered in useEffect without cleanup — should return () => emblaApi.off('select', onSelect) to avoid leaking on unmount when navigating between projects fast.",
+    "ProjectGallery: `if (!images.length) return null;` is fine but the component receives images from parent — worth guarding for undefined too (images?.length).",
+    "HomeIntro: shows on EVERY Home load (per spec) which may annoy return visitors; consider sessionStorage flag if UX complaints arise (not a bug, product decision).",
+    "backend/server.py: GET /api/home-intro passes the raw settings doc through serialize() which drops _id but still returns the internal 'id' field ('home_intro'). Not a bug but slightly leaky — could return {'bg_image': ...} only.",
+    "server.py CORS still uses '*' with allow_credentials=True (carry-over from iteration 1) — same recommendation stands."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Editor passcode: abearch4231 (unchanged, verified via login test)",
+  "seed_data_creation": "None new. Home-intro test used ephemeral PUT then restored. Ratio/crop test created 'TEST_Ratio Project' then deleted.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "backend_test.py at /app/backend/tests now has 21 tests including TestHomeIntro (3) and TestImageRatioCrop (1). New public endpoint: GET /api/home-intro; new admin: PUT /api/admin/home-intro (HomeIntroIn { bg_image: str }). ImageItem model gained ratio (str, default 'auto') and crop (bool, default False). data-testids used: project-gallery, gallery-prev-button, gallery-next-button, gallery-counter, gallery-caption, gallery-slide-<i>, home-intro, home-intro-bg, home-intro-form, home-intro-upload-button, save-home-intro-button, footer-wordmark, image-ratio-<i>, image-crop-<i>. Counter format is `pad(selected) / pad(images.length-1)` where pad(n)=String(n+1).padStart(2,'0'), so shows '01 / 06' for 6 images.",
+  "rca of the issue": "N/A — no blocking issues. Mobile title overflow pre-existing to gallery change; noted as design polish."
+}

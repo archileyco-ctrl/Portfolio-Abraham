@@ -212,6 +212,64 @@ class TestUploads:
         assert len(r2.content) < original_size
 
 
+# --- Home Intro (new) ---
+class TestHomeIntro:
+    def test_get_home_intro_public(self):
+        r = requests.get(f"{API}/home-intro")
+        assert r.status_code == 200
+        d = r.json()
+        assert "bg_image" in d
+
+    def test_put_home_intro_requires_auth(self):
+        r = requests.put(f"{API}/admin/home-intro", json={"bg_image": "x"})
+        assert r.status_code == 401
+
+    def test_put_home_intro_and_persist(self, auth):
+        current = requests.get(f"{API}/home-intro").json()
+        payload = {"bg_image": "/api/uploads/TEST_bg.jpg"}
+        r = requests.put(f"{API}/admin/home-intro", json=payload, headers=auth)
+        assert r.status_code == 200
+        assert r.json()["bg_image"] == payload["bg_image"]
+        # persistence via public GET
+        d = requests.get(f"{API}/home-intro").json()
+        assert d["bg_image"] == payload["bg_image"]
+        # restore
+        requests.put(f"{API}/admin/home-intro", json={"bg_image": current.get("bg_image", "")}, headers=auth)
+
+
+# --- Image ratio/crop fields ---
+class TestImageRatioCrop:
+    def test_create_project_with_ratio_crop(self, auth):
+        payload = {
+            "title": "TEST_Ratio Project",
+            "world": "anomaly",
+            "published": True,
+            "images": [
+                {"url": "/api/uploads/a.jpg", "caption": "c1", "ratio": "1:1", "crop": True},
+                {"url": "/api/uploads/b.jpg", "caption": "c2", "ratio": "16:9", "crop": False},
+                {"url": "/api/uploads/c.jpg", "caption": "c3"},  # defaults
+            ],
+        }
+        r = requests.post(f"{API}/admin/projects", json=payload, headers=auth)
+        assert r.status_code == 200, r.text
+        proj = r.json()
+        pid = proj["id"]
+        try:
+            assert proj["images"][0]["ratio"] == "1:1"
+            assert proj["images"][0]["crop"] is True
+            assert proj["images"][1]["ratio"] == "16:9"
+            assert proj["images"][1]["crop"] is False
+            # defaults
+            assert proj["images"][2]["ratio"] == "auto"
+            assert proj["images"][2]["crop"] is False
+            # persistence via public GET
+            pub = requests.get(f"{API}/projects/{proj['slug']}").json()
+            assert pub["images"][0]["ratio"] == "1:1"
+            assert pub["images"][0]["crop"] is True
+        finally:
+            requests.delete(f"{API}/admin/projects/{pid}", headers=auth)
+
+
 # --- Passcode change ---
 class TestPasscodeChange:
     def test_change_passcode_wrong_current(self, auth):

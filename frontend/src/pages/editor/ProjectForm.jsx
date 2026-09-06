@@ -43,7 +43,7 @@ export default function ProjectForm({ initial, onSaved, onCancel }) {
     try {
       const urls = await adminUpload(Array.from(files));
       setP((s) => {
-        const images = [...s.images, ...urls.map((url) => ({ url, caption: "" }))];
+        const images = [...s.images, ...urls.map((url) => ({ url, caption: "", ratio: "auto", crop: false }))];
         return { ...s, images, cover: s.cover || urls[0] };
       });
       toast.success(`${urls.length} image(s) uploaded`);
@@ -215,6 +215,26 @@ export default function ProjectForm({ initial, onSaved, onCancel }) {
                           <div className="flex-1">
                             <input className="e-input !py-1.5 text-xs" placeholder="Caption" data-testid={`image-caption-${i}`} value={img.caption}
                               onChange={(e) => set("images", p.images.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))} />
+                            <div className="flex gap-2 mt-2 items-center">
+                              <select
+                                className="e-input !py-1.5 !w-auto text-xs"
+                                data-testid={`image-ratio-${i}`}
+                                value={img.ratio || "auto"}
+                                onChange={(e) => set("images", p.images.map((x, j) => j === i ? { ...x, ratio: e.target.value } : x))}
+                              >
+                                <option value="auto">Original</option>
+                                <option value="square">Square 1:1</option>
+                                <option value="landscape">Landscape 4:3</option>
+                                <option value="portrait">Portrait 3:4</option>
+                                <option value="wide">Wide 16:9</option>
+                              </select>
+                              <label className="mono text-mute flex items-center gap-1 text-xs cursor-pointer">
+                                <input type="checkbox" data-testid={`image-crop-${i}`} checked={!!img.crop}
+                                  disabled={(img.ratio || "auto") === "auto"}
+                                  onChange={(e) => set("images", p.images.map((x, j) => j === i ? { ...x, crop: e.target.checked } : x))} />
+                                Crop
+                              </label>
+                            </div>
                             <div className="flex gap-2 mt-2 items-center">
                               <button className={`mono px-2 py-1 border ${p.cover === img.url ? "bg-ink text-paper border-transparent" : "border-line text-mute"}`}
                                 data-testid={`set-cover-${i}`} onClick={() => set("cover", img.url)}>

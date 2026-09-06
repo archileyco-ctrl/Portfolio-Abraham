@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Seo from "@/components/Seo";
+import ProjectGallery from "@/components/ProjectGallery";
 import { Reveal, MaskedLine } from "@/components/Reveal";
 import { fetchProject, fetchPublished, adminFetchBySlug, getToken, WORLDS, pad } from "@/lib/api";
+
+const RATIO_CLASS = { square: "aspect-square", landscape: "aspect-[4/3]", portrait: "aspect-[3/4]", wide: "aspect-[16/9]" };
+const imgBoxClass = (img) => (img?.ratio && img.ratio !== "auto" ? RATIO_CLASS[img.ratio] || "" : "");
+const imgFitClass = (img) => (img?.crop ? "object-cover" : "object-contain");
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -83,7 +88,7 @@ export default function ProjectDetail() {
             <div className="mono text-mute mt-4">{WORLDS[project.world]?.title}</div>
           </div>
           <div className="col-span-9 md:col-span-10">
-            <h1 className="display text-4xl md:text-7xl" data-testid="project-title">
+            <h1 className="display text-4xl md:text-7xl break-words" data-testid="project-title">
               <MaskedLine delay={0.1}>{project.title}</MaskedLine>
             </h1>
             {project.summary && (
@@ -102,16 +107,7 @@ export default function ProjectDetail() {
         </div>
       </section>
 
-      {images[0] && (
-        <section className="px-4 md:px-10 mt-14">
-          <Reveal>
-            <img src={images[0].url} alt={project.title} className="w-full aspect-[16/10] md:aspect-[21/10] object-cover" data-testid="project-hero-image" />
-            {images[0].caption && (
-              <p className="mono text-mute mt-3">{images[0].caption}</p>
-            )}
-          </Reveal>
-        </section>
-      )}
+      {images.length > 0 && <ProjectGallery images={images} title={project.title} />}
 
       {project.concept && (
         <section className="px-4 md:px-10 mt-20 md:mt-28 grid grid-cols-12 gap-6">
@@ -170,7 +166,14 @@ export default function ProjectDetail() {
           {restImages[i] && (
             <section className="px-4 md:px-10 mt-20 md:mt-28">
               <Reveal>
-                <img src={restImages[i].url} alt={s.heading || project.title} className="w-full h-auto" data-testid={`project-image-${i + 2}`} />
+                <div className={imgBoxClass(restImages[i])}>
+                  <img
+                    src={restImages[i].url}
+                    alt={s.heading || project.title}
+                    className={`w-full h-full ${imgBoxClass(restImages[i]) ? imgFitClass(restImages[i]) : "h-auto"}`}
+                    data-testid={`project-image-${i + 2}`}
+                  />
+                </div>
                 {restImages[i].caption && (
                   <p className="mono text-mute mt-3">{restImages[i].caption}</p>
                 )}
@@ -195,7 +198,14 @@ export default function ProjectDetail() {
       {restImages.slice(sections.length).map((img, i) => (
         <section className="px-4 md:px-10 mt-20 md:mt-28" key={i}>
           <Reveal>
-            <img src={img.url} alt={project.title} className="w-full h-auto" data-testid={`project-image-extra-${i}`} />
+            <div className={imgBoxClass(img)}>
+              <img
+                src={img.url}
+                alt={project.title}
+                className={`w-full h-full ${imgBoxClass(img) ? imgFitClass(img) : "h-auto"}`}
+                data-testid={`project-image-extra-${i}`}
+              />
+            </div>
             {img.caption && <p className="mono text-mute mt-3">{img.caption}</p>}
           </Reveal>
         </section>

@@ -40,6 +40,8 @@ api_router = APIRouter(prefix="/api")
 class ImageItem(BaseModel):
     url: str
     caption: str = ""
+    ratio: str = "auto"
+    crop: bool = False
 
 
 class SectionItem(BaseModel):
@@ -63,6 +65,10 @@ class AboutIn(BaseModel):
 class PasscodeChange(BaseModel):
     current_passcode: str
     new_passcode: str
+
+
+class HomeIntroIn(BaseModel):
+    bg_image: str = ""
 
 
 DEFAULT_ABOUT = {
@@ -203,6 +209,24 @@ async def update_about(body: AboutIn, _=Depends(require_editor)):
     data = body.model_dump()
     data['id'] = 'about'
     await db.settings.update_one({"id": "about"}, {"$set": data}, upsert=True)
+    return data
+
+
+# ---------- Home intro splash ----------
+
+@api_router.get("/home-intro")
+async def get_home_intro():
+    doc = await db.settings.find_one({"id": "home_intro"})
+    if not doc:
+        return {"bg_image": ""}
+    return serialize(doc)
+
+
+@api_router.put("/admin/home-intro")
+async def update_home_intro(body: HomeIntroIn, _=Depends(require_editor)):
+    data = body.model_dump()
+    data['id'] = 'home_intro'
+    await db.settings.update_one({"id": "home_intro"}, {"$set": data}, upsert=True)
     return data
 
 

@@ -6,9 +6,12 @@ export default function SiteFooter() {
       <div className="px-4 md:px-10 pt-16 pb-8">
         <div className="grid grid-cols-12 gap-6 items-end">
           <div className="col-span-12 md:col-span-7">
-            <div className="display lowercase whitespace-nowrap text-[10vw] md:text-[4.7vw]" data-testid="footer-wordmark">
-              abearchitectstudio
-            </div>
+            <img
+              src="https://customer-assets-lqy194kg.emergentagent.net/job_spatial-editor/artifacts/oe4wy2me_Abraham%20Logo.webp"
+              alt="Abraham — Conceptual & Experimental"
+              data-testid="footer-wordmark"
+              className="h-14 md:h-20 w-auto object-contain"
+            />
             <div className="mono text-mute mt-3">
               Architecture, objects and spatial experiments
             </div>

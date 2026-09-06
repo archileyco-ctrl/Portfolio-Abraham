@@ -121,4 +121,14 @@ export const adminChangePasscode = async (current_passcode, new_passcode) => {
   return data;
 };
 
+export const fetchHomeIntro = async () => {
+  const { data } = await axios.get(`${API}/home-intro`);
+  return data;
+};
+
+export const adminUpdateHomeIntro = async (bg_image) => {
+  const { data } = await axios.put(`${API}/admin/home-intro`, { bg_image }, authHeaders());
+  return data;
+};
+
 export const pad = (n) => String(n + 1).padStart(2, "0");

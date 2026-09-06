@@ -45,3 +45,21 @@ The user has a finished architecture portfolio (reference: spatial-studio-v2 pre
 - P2: Image compression/resizing on upload
 - P2: Delete uploaded files from disk when removed from a project
 - P2: Change passcode from editor UI
+
+## Implemented (2026-09-06, session 3)
+- Project detail opening now uses ProjectGallery (embla-carousel): all project images in editor-set order, prev/next arrows (desktop), swipe (mobile), counter "01/NN", natural proportions (no crop). Rest of the project page layout is unchanged
+- Visual polish: site background white (#FFFFFF, was cream), body/nav/metadata/labels now use Poppins (temporary Gotham stand-in — real Gotham font files not yet supplied by user, swap later in index.css --font-body), titles (.display, Archivo) untouched
+- Home page full-screen intro splash (Abraham logo on white plate over optional bg image) on every load, ~2.4s or dismiss on click; bg image is editable from Editor → Settings → "Home opening screen background" (GET /api/home-intro public, PUT /api/admin/home-intro auth)
+- Footer wordmark replaced with Abraham logo image
+- Per-image display ratio (Original/Square/Landscape/Portrait/Wide) + optional crop toggle added to ProjectForm image rows (ImageItem.ratio/crop) — affects only inline section/extra images on project page, not the opening gallery
+- Passcode-recovery-via-email: CANCELLED by user (no Resend API key provided) — not implemented
+
+## Verified (session 3)
+- Backend: 21/21 pytest (17 regression + home-intro x3 + ratio/crop x1) — 100%
+- Frontend: gallery nav/counter/swipe, home-intro splash, white bg, Poppins/Archivo font split, footer logo, Settings home-intro card, per-image ratio/crop — 100% via testing_agent (see /app/test_reports/iteration_2.json)
+- Fixed post-test: mobile project-title overflow (added break-words), ProjectGallery embla listener cleanup on unmount
+
+## Backlog
+- P2: Swap Poppins → real Gotham once user uploads font files
+- P2: Delete uploaded files from disk when removed from a project
+- P2: Passcode recovery via email (needs user's Resend API key if revisited)
